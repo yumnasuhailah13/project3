@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game PAI: Detektif Akhlak Terpuji</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter & Amiri for Islamic aesthetic accents -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Amiri:wght@700&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        emerald: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                            900: '#064e3b',
+                        },
+                        gold: {
+                            400: '#fbbf24',
+                            500: '#f59e0b',
+                            600: '#d97706',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        arabic: ['Amiri', 'serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        .arabic-text {
+            font-family: 'Amiri', serif;
+        }
+        .bg-pattern {
+            background-color: #064e3b;
+            background-image: radial-gradient(#10b981 0.75px, transparent 0.75px), radial-gradient(#10b981 0.75px, #064e3b 0.75px);
+            background-size: 30px 30px;
+            background-position: 0 0,15px 15px;
+            background-opacity: 0.15;
+        }
+        .card-glow {
+            box-shadow: 0 10px 25px -5px rgba(5, 150, 105, 0.15), 0 8px 10px -6px rgba(5, 150, 105, 0.1);
+        }
+        .badge-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: .9; transform: scale(1.03); }
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #059669;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col antialiased selection:bg-emerald-500 selection:text-white">
+
+    <!-- Top Header Navigation -->
+    <header class="bg-emerald-900 text-white shadow-lg border-b-4 border-gold-500 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap justify-between items-center gap-3">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gold-500 text-emerald-950 flex items-center justify-center font-bold text-xl shadow-md">
+                    <i class="fa-solid fa-magnifying-glass font-black"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg sm:text-xl font-black tracking-wide leading-tight">DETEKTIF AKHLAK TERPUJI</h1>
+                    <p class="text-xs text-emerald-200">Mutiara Hati Berilmu & Beriman kepada Allah SWT</p>
+                </div>
+            </div>
+
+            <!-- Header Stats & Quick Nav -->
+            <div class="flex items-center space-x-2 sm:space-x-4">
+                <div class="hidden sm:flex items-center bg-emerald-800/80 px-3 py-1.5 rounded-lg border border-emerald-700 text-xs">
+                    <i class="fa-solid fa-gem text-gold-400 mr-2"></i>
+                    <span>Doa Khusyuk • Ikhtiar • Tawakal • Husnuzan</span>
+                </div>
+                <button onclick="toggleAudioMute()" id="audioBtn" class="bg-emerald-800 hover:bg-emerald-700 text-gold-400 p-2 rounded-lg text-sm transition" title="Efek Suara">
+                    <i class="fa-solid fa-volume-high"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-6">
+
+        <!-- Navigation Mode Tabs -->
+        <div class="bg-white p-2 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap gap-2 justify-center sm:justify-start">
+            <button onclick="switchTab('interactiveTab')" id="tabBtn-interactiveTab" class="tab-btn active px-4 py-2.5 rounded-xl text-sm font-bold transition flex items-center gap-2 bg-emerald-600 text-white shadow">
+                <i class="fa-solid fa-user-ninja"></i> Tantangan Detektif (Siswa)
+            </button>
+            <button onclick="switchTab('classTab')" id="tabBtn-classTab" class="tab-btn px-4 py-2.5 rounded-xl text-sm font-bold transition flex items-center gap-2 text-slate-600 hover:bg-slate-100">
+                <i class="fa-solid fa-chalkboard-user"></i> Mode Presentasi & Scoreboard Guru
+            </button>
+            <button onclick="switchTab('aiTab')" id="tabBtn-aiTab" class="tab-btn px-4 py-2.5 rounded-xl text-sm font-bold transition flex items-center gap-2 text-slate-600 hover:bg-slate-100">
+                <i class="fa-solid fa-robot"></i> Analisis AI Gemini
+            </button>
+            <button onclick="switchTab('summaryTab')" id="tabBtn-summaryTab" class="tab-btn px-4 py-2.5 rounded-xl text-sm font-bold transition flex items-center gap-2 text-slate-600 hover:bg-slate-100">
+                <i class="fa-solid fa-book-open"></i> Rantai Mutiara Hati
+            </button>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB 1: INTERACTIVE STUDENT CASE PUZZLE GAME -->
+        <!-- ========================================== -->
+        <section id="interactiveTab" class="tab-content flex flex-col gap-6">
+            <!-- Hero Banner -->
+            <div class="bg-gradient-to-r from-emerald-800 to-emerald-900 rounded-3xl p-6 sm:p-8 text-white relative overflow-hidden shadow-xl border border-emerald-700">
+                <div class="relative z-10 max-w-3xl">
+                    <span class="bg-gold-500 text-emerald-950 text-xs font-black uppercase px-3 py-1 rounded-full inline-block mb-3">
+                        <i class="fa-solid fa-star mr-1"></i> Misi Pemecahan Kasus
+                    </span>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold mb-2">Pecahkan Kasus Akhlak Sehari-Hari!</h2>
+                    <p class="text-emerald-100 text-sm sm:text-base mb-4 leading-relaxed">
+                        Pilih kartu kasus di bawah, teliti masalahnya, analisis kesalahan sikap tokoh, lalu tentukan solusi terpuji berbasis ajaran Islam!
+                    </p>
+                    <!-- Progress Bar -->
+                    <div class="bg-emerald-950/60 p-4 rounded-2xl border border-emerald-700/50 flex flex-wrap justify-between items-center gap-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-xl bg-gold-500 text-emerald-950 flex items-center justify-center text-xl font-bold">
+                                <i class="fa-solid fa-trophy"></i>
+                            </div>
+                            <div>
+                                <div class="text-xs text-emerald-300 font-semibold">Gelar Detektif Kamu</div>
+                                <div id="detectiveRankText" class="text-base font-bold text-gold-400">Detektif Pemula 🔍</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="text-right">
+                                <div class="text-xs text-emerald-300">Total Skor Siswa</div>
+                                <div id="studentTotalScore" class="text-2xl font-black text-white">0 <span class="text-xs font-normal text-emerald-300">/ 600 Poin</span></div>
+                            </div>
+                            <button onclick="resetStudentProgress()" class="text-xs text-emerald-300 hover:text-white underline ml-2">Reset</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Case Selector Grid -->
+            <div>
+                <h3 class="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-folder-open text-emerald-600"></i> Pilih Kartu Kasus (1 - 6)
+                </h3>
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3" id="caseCardsContainer">
+                    <!-- Cards will be populated dynamically -->
+                </div>
+            </div>
+
+            <!-- Active Case Play Workspace -->
+            <div id="activeCaseWorkspace" class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm transition-all">
+                <!-- Header of active case -->
+                <div class="flex flex-wrap justify-between items-start gap-4 pb-6 border-b border-slate-100">
+                    <div>
+                        <span id="caseBadge" class="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full uppercase inline-block mb-2">Kasus #1</span>
+                        <h2 id="caseTitle" class="text-xl sm:text-2xl font-black text-slate-800">Ujian Sekolah dan Doa Tanpa Belajar</h2>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span id="caseTopicBadge" class="bg-gold-100 text-gold-800 text-xs font-bold px-3 py-1.5 rounded-xl flex items-center gap-1">
+                            <i class="fa-solid fa-[#f59e0b]"></i> Ikhtiar Maksimal
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Story Box -->
+                <div class="my-6 bg-slate-50 p-5 sm:p-6 rounded-2xl border-l-4 border-emerald-500 relative">
+                    <i class="fa-solid fa-quote-left text-3xl text-emerald-200 absolute top-3 right-4"></i>
+                    <h4 class="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-2">Skenario Kehidupan Sehari-hari</h4>
+                    <p id="caseStory" class="text-slate-700 text-sm sm:text-base leading-relaxed relative z-10 font-medium">
+                        Rina akan menghadapi Ujian Akhir Semester besok pagi...
+                    </p>
+                </div>
+
+                <!-- Interactive Question Steps -->
+                <div class="space-y-6">
+                    <!-- Step 1: Identify Issue -->
+                    <div class="bg-emerald-50/50 p-5 rounded-2xl border border-emerald-100">
+                        <label class="block text-sm font-bold text-emerald-950 mb-2 flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full bg-emerald-600 text-white text-xs flex items-center justify-center">1</span>
+                            Apa masalah utama dalam cerita di atas?
+                        </label>
+                        <div id="q1Options" class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+                            <!-- Options generated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Missing / Violated Akhlak -->
+                    <div class="bg-emerald-50/50 p-5 rounded-2xl border border-emerald-100">
+                        <label class="block text-sm font-bold text-emerald-950 mb-2 flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full bg-emerald-600 text-white text-xs flex items-center justify-center">2</span>
+                            Sikap terpuji apa yang BELUM/KURANG diterapkan oleh tokoh?
+                        </label>
+                        <div id="q2Options" class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2">
+                            <!-- Options generated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Proper Solution -->
+                    <div class="bg-emerald-50/50 p-5 rounded-2xl border border-emerald-100">
+                        <label class="block text-sm font-bold text-emerald-950 mb-2 flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full bg-emerald-600 text-white text-xs flex items-center justify-center">3</span>
+                            Apa tindakan terbaik & paling tepat yang seharusnya dilakukan?
+                        </label>
+                        <div id="q3Options" class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+                            <!-- Options generated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Step 4: Reflection Reason -->
+                    <div class="bg-emerald-50/50 p-5 rounded-2xl border border-emerald-100">
+                        <label class="block text-sm font-bold text-emerald-950 mb-2 flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full bg-emerald-600 text-white text-xs flex items-center justify-center">4</span>
+                            Mengapa sikap terpuji tersebut sangat penting? (Alasan)
+                        </label>
+                        <div id="q4Options" class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+                            <!-- Options generated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-slate-100">
+                        <button onclick="checkInteractiveAnswers()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-3 rounded-xl shadow-lg hover:shadow-emerald-500/25 transition flex items-center gap-2">
+                            <i class="fa-solid fa-circle-check"></i> Periksa Hasil Detektif
+                        </button>
+                        <div id="caseFeedback" class="hidden font-bold text-sm"></div>
+                    </div>
+                </div>
+
+                <!-- Explanation / Key Answers Box (Appears after submission or teacher unlock) -->
+                <div id="caseKeyBox" class="hidden mt-8 bg-amber-50 rounded-2xl p-6 border border-amber-200">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="font-bold text-amber-900 flex items-center gap-2">
+                            <i class="fa-solid fa-lightbulb text-gold-500 text-xl"></i> Kunci Jawaban & Pembahasan Detektif
+                        </h4>
+                        <span class="text-xs bg-amber-200 text-amber-900 px-2.5 py-1 rounded-full font-semibold">Penjelasan Islam</span>
+                    </div>
+                    <div id="caseKeyContent" class="space-y-3 text-sm text-amber-950">
+                        <!-- Key text dynamically populated -->
+                    </div>
+
+                    <!-- Bonus Question Card -->
+                    <div class="mt-6 bg-white p-4 rounded-xl border border-amber-300 shadow-sm">
+                        <div class="text-xs font-bold uppercase text-amber-700 tracking-wider mb-1">🎁 Pertanyaan Bonus Refleksi Guru:</div>
+                        <p id="caseBonusQuestion" class="font-bold text-slate-800 text-sm sm:text-base">
+                            "Mengapa berdoa tanpa belajar itu dinamakan bohong, sedangkan belajar tanpa berdoa dinamakan sombong?"
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- TAB 2: CLASS PRESENTATION & TEACHER SCOREBOARD -->
+        <!-- ========================================== -->
+        <section id="classTab" class="tab-content hidden flex flex-col gap-6">
+            <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm">
+                <div class="flex flex-wrap justify-between items-center gap-4 mb-6">
+                    <div>
+                        <h2 class="text-2xl font-black text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-chalkboard-user text-emerald-600"></i> Papan Skor & Diskusi Kelompok Kelas
+                        </h2>
+                        <p class="text-slate-500 text-sm">Kelola jalannya diskusi, jalankan timer presentasi, dan catat skor kelompok (Maks 100 poin per kelompok).</p>
+                    </div>
+
+                    <!-- Presentation Timer -->
+                    <div class="bg-emerald-900 text-white px-5 py-3 rounded-2xl shadow-md flex items-center gap-4">
+                        <div>
+                            <div class="text-[10px] font-bold text-emerald-300 uppercase tracking-widest">Timer Diskusi/Presentasi</div>
+                            <div id="timerDisplay" class="text-2xl font-black tracking-wider font-mono">15:00</div>
+                        </div>
+                        <div class="flex gap-1">
+                            <button onclick="startTimer()" class="w-8 h-8 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center text-xs shadow transition"><i class="fa-solid fa-play"></i></button>
+                            <button onclick="pauseTimer()" class="w-8 h-8 rounded-lg bg-gold-500 hover:bg-gold-400 text-emerald-950 flex items-center justify-center text-xs shadow transition"><i class="fa-solid fa-pause"></i></button>
+                            <button onclick="resetTimer()" class="w-8 h-8 rounded-lg bg-slate-700 hover:bg-slate-600 text-white flex items-center justify-center text-xs shadow transition"><i class="fa-solid fa-rotate-right"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Scoreboard Cards Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="groupScoreboardGrid">
+                    <!-- Groups 1 to 6 will be generated here -->
+                </div>
+            </div>
+
+            <!-- Rubric Guide Modal / Sheet -->
+            <div class="bg-emerald-50 rounded-3xl p-6 border border-emerald-200">
+                <h3 class="font-bold text-emerald-900 text-base mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-clipboard-check text-emerald-600"></i> Rubrik Penilaian Resmi Guru (Total 100 Poin)
+                </h3>
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-xs">
+                    <div class="bg-white p-3 rounded-xl border border-emerald-100 shadow-sm">
+                        <div class="font-bold text-emerald-800 mb-1">1. Masalah</div>
+                        <div class="text-slate-600">Identifikasi tepat = <b>10 Poin</b></div>
+                    </div>
+                    <div class="bg-white p-3 rounded-xl border border-emerald-100 shadow-sm">
+                        <div class="font-bold text-emerald-800 mb-1">2. Akhlak Tepat</div>
+                        <div class="text-slate-600">Sikap sesuai = <b>20 Poin</b></div>
+                    </div>
+                    <div class="bg-white p-3 rounded-xl border border-emerald-100 shadow-sm">
+                        <div class="font-bold text-emerald-800 mb-1">3. Solusi Konkret</div>
+                        <div class="text-slate-600">Saran baik = <b>20 Poin</b></div>
+                    </div>
+                    <div class="bg-white p-3 rounded-xl border border-emerald-100 shadow-sm">
+                        <div class="font-bold text-emerald-800 mb-1">4. Alasan Logis</div>
+                        <div class="text-slate-600">Bahasa jelas = <b>20 Poin</b></div>
+                    </div>
+                    <div class="bg-white p-3 rounded-xl border border-emerald-100 shadow-sm">
+                        <div class="font-bold text-emerald-800 mb-1">5. Presentasi</div>
+                        <div class="text-slate-600">Kompak & PD = <b>10 Poin</b></div>
+                    </div>
+                    <div class="bg-white p-3 rounded-xl border border-emerald-100 shadow-sm">
+                        <div class="font-bold text-emerald-800 mb-1">6. Pertanyaan Bonus</div>
+                        <div class="text-slate-600">Kritis & Tepat = <b>20 Poin</b></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- TAB 3: GEMINI AI CASE EVALUATOR & CREATOR -->
+        <!-- ========================================== -->
+        <section id="aiTab" class="tab-content hidden flex flex-col gap-6">
+            <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-xl font-bold">
+                        <i class="fa-solid fa-brain"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-black text-slate-800">Asisten AI Detektif Akhlak (Gemini API)</h2>
+                        <p class="text-slate-500 text-sm">Evaluasi otomatis jawaban siswa atau buat cerita kasus baru sesuai realita sekolah!</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Column 1: Custom Answer Evaluation -->
+                    <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200 flex flex-col gap-4">
+                        <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                            <i class="fa-solid fa-magnifying-glass-chart text-purple-600"></i> Uji Jawaban Siswa
+                        </h3>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">Pilih Materi / Kasus</label>
+                            <select id="aiMaterialSelect" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500">
+                                <option value="Ikhtiar Maksimal">Kasus Ikhtiar Maksimal (Berusaha Belajar & Doa)</option>
+                                <option value="Tawakal">Kasus Tawakal (Ikhlas Terima Hasil Perlombaan)</option>
+                                <option value="Husnuzan kepada Allah">Kasus Husnuzan kepada Allah (Berbaik Sangka Saat Ujian)</option>
+                                <option value="Doa Khusyuk">Kasus Doa Khusyuk (Serius & Sopan Berdoa)</option>
+                                <option value="Husnuzan kepada Sesama">Kasus Husnuzan kepada Teman</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">Tuliskan Jawaban Diskusi Kelompok Siswa</label>
+                            <textarea id="aiStudentInput" rows="4" placeholder="Contoh: Menurut kelompok kami, tokoh salah karena hanya berdoa tanpa belajar. Seharusnya ia belajar sungguh-sungguh baru tawakal..." class="w-full bg-white border border-slate-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-emerald-500"></textarea>
+                        </div>
+                        <button onclick="evaluateAnswerWithAI()" id="aiEvalBtn" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 px-4 rounded-xl text-sm transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> Analisis Jawaban dengan Gemini AI
+                        </button>
+                    </div>
+
+                    <!-- Column 2: AI Generated Case Scenario Generator -->
+                    <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200 flex flex-col gap-4">
+                        <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                            <i class="fa-solid fa-plus-circle text-emerald-600"></i> Generator Kasus Baru Otomatis
+                        </h3>
+                        <p class="text-xs text-slate-600">Ingin kasus yang lebih bervariasi? Klik tombol di bawah untuk membuat skenario kasus baru beserta kunci jawabannya!</p>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">Topik Kasus Yang Diinginkan</label>
+                            <select id="aiTopicGenerate" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500">
+                                <option value="Doa Khusyuk saat kesulitan belajar">Doa Khusyuk saat kesulitan belajar</option>
+                                <option value="Ikhtiar Maksimal dalam meraih cita-cita">Ikhtiar Maksimal dalam meraih cita-cita</option>
+                                <option value="Tawakal saat kalah dalam kompetisi olahraga">Tawakal saat kalah dalam kompetisi olahraga</option>
+                                <option value="Husnuzan saat mendapat cobaan nilai kecil">Husnuzan saat mendapat cobaan nilai kecil</option>
+                            </select>
+                        </div>
+
+                        <button onclick="generateNewCaseWithAI()" id="aiGenBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-xl text-sm transition flex items-center justify-center gap-2 mt-auto">
+                            <i class="fa-solid fa-file-pen"></i> Buat Kasus Baru via Gemini AI
+                        </button>
+                    </div>
+                </div>
+
+                <!-- AI Output Results Container -->
+                <div id="aiOutputBox" class="hidden mt-6 bg-purple-50 p-6 rounded-2xl border border-purple-200">
+                    <h4 class="font-bold text-purple-900 text-sm mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-comments text-purple-600"></i> Respon AI Detektif Akhlak:
+                    </h4>
+                    <div id="aiOutputText" class="text-slate-800 text-sm leading-relaxed whitespace-pre-wrap"></div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- TAB 4: MATERIAL SUMMARY & REFLECTION CHAIN -->
+        <!-- ========================================== -->
+        <section id="summaryTab" class="tab-content hidden flex flex-col gap-6">
+            <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm">
+                <div class="text-center max-w-3xl mx-auto mb-8">
+                    <span class="bg-gold-100 text-gold-800 text-xs font-bold px-3 py-1 rounded-full uppercase">Kesimpulan Utama PAI</span>
+                    <h2 class="text-2xl sm:text-3xl font-black text-slate-800 mt-2">Rantai Mutiara Hati Berilmu & Beriman</h2>
+                    <p class="text-slate-600 text-sm mt-2">Empat pilar akhlak terpuji kepada Allah SWT yang saling terhubung dalam kehidupan seorang muslim yang tangguh.</p>
+                </div>
+
+                <!-- Visual Interactive Flow Chain -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 relative">
+                    <!-- Step 1 -->
+                    <div class="bg-emerald-50 p-5 rounded-2xl border-2 border-emerald-500 text-center relative flex flex-col items-center">
+                        <div class="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center text-xl font-bold mb-3 shadow">
+                            1
+                        </div>
+                        <h3 class="font-bold text-emerald-950 text-base mb-1">DOA KHUSYUK</h3>
+                        <p class="text-xs text-emerald-800 leading-relaxed">Berdoa dengan tenang, sopan, fokus, dan penuh ketulusan hati saat mengawali niat.</p>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="bg-emerald-50 p-5 rounded-2xl border-2 border-emerald-500 text-center relative flex flex-col items-center">
+                        <div class="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center text-xl font-bold mb-3 shadow">
+                            2
+                        </div>
+                        <h3 class="font-bold text-emerald-950 text-base mb-1">IKHTIAR MAKSIMAL</h3>
+                        <p class="text-xs text-emerald-800 leading-relaxed">Berusaha, belajar, dan bekerja keras sekuat tenaga tanpa pernah bersikap malas.</p>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="bg-emerald-50 p-5 rounded-2xl border-2 border-emerald-500 text-center relative flex flex-col items-center">
+                        <div class="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center text-xl font-bold mb-3 shadow">
+                            3
+                        </div>
+                        <h3 class="font-bold text-emerald-950 text-base mb-1">TAWAKAL</h3>
+                        <p class="text-xs text-emerald-800 leading-relaxed">Berserah diri dan menyerahkan segala keputusan hasil akhir sepenuhnya kepada Allah SWT.</p>
+                    </div>
+
+                    <!-- Step 4 -->
+                    <div class="bg-emerald-50 p-5 rounded-2xl border-2 border-emerald-500 text-center relative flex flex-col items-center">
+                        <div class="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center text-xl font-bold mb-3 shadow">
+                            4
+                        </div>
+                        <h3 class="font-bold text-emerald-950 text-base mb-1">HUSNUZAN</h3>
+                        <p class="text-xs text-emerald-800 leading-relaxed">Berprasangka baik bahwa apapun takdir Allah adalah keputusan terbaik untuk kita.</p>
+                    </div>
+                </div>
+
+                <!-- Teacher Reflection Speech Box -->
+                <div class="mt-8 bg-gradient-to-r from-emerald-900 to-emerald-800 text-white p-6 sm:p-8 rounded-3xl shadow-lg border border-gold-500/30">
+                    <h3 class="font-black text-gold-400 text-lg mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-scroll"></i> Pesan Mutiara Guru PAI
+                    </h3>
+                    <p class="text-emerald-100 text-sm sm:text-base leading-relaxed italic">
+                        "Anak-anakku yang soleh dan solehah, jika kalian menerapkan 4 mutiara hati ini—selalu berdoa dengan khusyuk, berikhtiar pantang menyerah, bertawakal dengan ikhlas, dan berhusnuzan kepada Allah—kalian akan menjadi pribadi yang percaya diri, tidak mudah stres, dan senantiasa dicintai oleh Allah SWT."
+                    </p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 py-6 text-center text-xs border-t border-slate-800">
+        <p>© Game Edukatif PAI: Detektif Akhlak Terpuji • Pembelajaran Berbasis Kasus (Case-Based Learning)</p>
+    </footer>
+
+    <script>
+        // Global Game State & Case Database
+        const casesDatabase = [
+            {
+                id: 1,
+                title: "Ujian Sekolah dan Doa Tanpa Belajar",
+                topic: "Ikhtiar Maksimal",
+                story: "Rina akan menghadapi Ujian Akhir Semester besok pagi. Ia sangat ingin mendapatkan nilai yang bagus. Setiap selesai salat, Rina berdoa dengan penuh harapan agar Allah memberikan nilai 100. Namun, setelah berdoa, Rina justru menghabiskan waktunya untuk bermain game di ponsel hingga larut malam dan tidak membuka buku pelajaran sama sekali karena merasa sudah cukup hanya dengan berdoa.",
+                correctTopic: "Ikhtiar Maksimal",
+                answers: {
+                    q1: "Rina ingin nilai bagus tapi tidak mau belajar sama sekali",
+                    q2: "Ikhtiar Maksimal",
+                    q3: "Belajar sungguh-sungguh terlebih dahulu, baru kemudian berdoa & pasrah",
+                    q4: "Berdoa saja tidak cukup, Allah memerintahkan manusia untuk berusaha sebelum mengharapkan hasil"
+                },
+                options: {
+                    q1: [
+                        "Rina ingin nilai bagus tapi tidak mau belajar sama sekali",
+                        "Rina tidak pernah menjalankan ibadah salat",
+                        "Ponsel Rina rusak saat hendak dipakai belajar",
+                        "Rina lupa jadwal ujian semester"
+                    ],
+                    q2: ["Doa Khusyuk", "Ikhtiar Maksimal", "Tawakal", "Husnuzan"],
+                    q3: [
+                        "Belajar sungguh-sungguh terlebih dahulu, baru kemudian berdoa & pasrah",
+                        "Berhenti berdoa dan hanya bermain game sepanjang hari",
+                        "Meminta orang tua mengerjakan soal ujiannya",
+                        "Menyerah sebelum mencoba"
+                    ],
+                    q4: [
+                        "Berdoa saja tidak cukup, Allah memerintahkan manusia untuk berusaha sebelum mengharapkan hasil",
+                        "Belajar itu tidak penting jika sudah berdoa",
+                        "Nilai bagus murni karena keberuntungan semata",
+                        "Tidak ada hubungannya antara ikhtiar dan hasil"
+                    ]
+                },
+                explanation: "<b>Masalah:</b> Rina malas belajar.<br><b>Sikap yang kurang:</b> Ikhtiar Maksimal.<br><b>Solusi:</b> Harus giat belajar lalu berdoa.",
+                bonusQuestion: "Mengapa berdoa tanpa belajar itu dinamakan bohong, sedangkan belajar tanpa berdoa dinamakan sombong?"
+            },
+            {
+                id: 2,
+                title: "Lomba Memanah dan Rasa Kecewa",
+                topic: "Tawakal",
+                story: "Dika mengikuti lomba memanah tingkat sekolah. Selama satu bulan penuh, Dika berlatih keras setiap hari tanpa mengeluh dan selalu berdoa agar menjadi juara pertama. Saat hari perlombaan tiba, Dika sudah berusaha memberikan tembakan terbaiknya. Namun, saat pengumuman, Dika hanya berhasil meraih Juara 3. Dika merasa sangat sedih dan mengurung diri di kamar karena merasa usahanya sia-sia.",
+                correctTopic: "Tawakal",
+                answers: {
+                    q1: "Dika sedih dan mengurung diri karena hanya meraih Juara 3",
+                    q2: "Tawakal",
+                    q3: "Bersyukur atas Juara 3, mendoakan pemenang, dan lapang dada menerima takdir Allah",
+                    q4: "Dika telah berikhtiar maksimal, sehingga ia harus menyerahkan dan ikhlas atas keputusan terbaik Allah"
+                },
+                options: {
+                    q1: [
+                        "Dika sedih dan mengurung diri karena hanya meraih Juara 3",
+                        "Dika lupa tidak membawa busur panah saat lomba",
+                        "Dika dimarahi oleh pelatih panahannya",
+                        "Dika tidak berlatih sama sekali sebelum lomba"
+                    ],
+                    q2: ["Doa Khusyuk", "Ikhtiar Maksimal", "Tawakal", "Husnuzan"],
+                    q3: [
+                        "Bersyukur atas Juara 3, mendoakan pemenang, dan lapang dada menerima takdir Allah",
+                        "Berhenti olahraga memanah selamanya",
+                        "Menyalahkan juri perlombaan",
+                        "Mengurung diri di kamar selama berhari-hari"
+                    ],
+                    q4: [
+                        "Dika telah berikhtiar maksimal, sehingga ia harus menyerahkan dan ikhlas atas keputusan terbaik Allah",
+                        "Usaha Dika benar-benar sia-sia dan tidak dihargai",
+                        "Juara 3 adalah kegagalan mutlak yang memaluikkan",
+                        "Allah tidak menyukai orang yang memanah"
+                    ]
+                },
+                explanation: "<b>Masalah:</b> Dika kecewa tidak juara 1.<br><b>Sikap yang kurang:</b> Tawakal & Husnuzan.<br><b>Solusi:</b> Bersyukur atas Juara 3 dan ikhlas atas takdir Allah.",
+                bonusQuestion: "Jika kita sudah berusaha maksimal tetapi hasilnya tidak sesuai keinginan kita, sikap apa yang harus kita tancapkan di dalam hati?"
+            },
+            {
+                id: 3,
+                title: "Nilai Matematika dan Prasangka Buruk",
+                topic: "Husnuzan kepada Allah",
+                story: "Fikri baru saja menerima lembar hasil ulangan Matematika dan mendapatkan nilai 60, di bawah target yang ia inginkan. Padahal, Fikri merasa sudah belajar dan berdoa sebelum ujian. Fikri kemudian merasa kesal dan bergumam: 'Mengapa Allah tidak adil padaku? Padahal aku sudah berdoa, tetapi Allah tetap memberikan nilai jelek.' Sejak hari itu, Fikri jadi malas berdoa.",
+                correctTopic: "Husnuzan",
+                answers: {
+                    q1: "Fikri menyalahkan Allah dan malas berdoa karena nilai Matematikanya 60",
+                    q2: "Husnuzan",
+                    q3: "Tetap bersabar, evaluasi cara belajar, dan selalu berprasangka baik pada Allah",
+                    q4: "Berprasangka buruk (su'uzan) kepada Allah melanggar prinsip iman dan merugikan diri sendiri"
+                },
+                options: {
+                    q1: [
+                        "Fikri menyalahkan Allah dan malas berdoa karena nilai Matematikanya 60",
+                        "Fikri tidak diperbolehkan mengikuti ulangan susulan",
+                        "Buku matematika Fikri hilang disembunyikan teman",
+                        "Fikri terlambat datang ke sekolah"
+                    ],
+                    q2: ["Doa Khusyuk", "Ikhtiar Maksimal", "Tawakal", "Husnuzan"],
+                    q3: [
+                        "Tetap bersabar, evaluasi cara belajar, dan selalu berprasangka baik pada Allah",
+                        "Berhenti berdoa dan tidak mau belajar Matematika lagi",
+                        "Menyalahkan guru yang memberi soal sulit",
+                        "Pindah sekolah karena nilai jelek"
+                    ],
+                    q4: [
+                        "Berprasangka buruk (su'uzan) kepada Allah melanggar prinsip iman dan merugikan diri sendiri",
+                        "Allah memang sengaja memusuhi Fikri",
+                        "Doa tidak ada gunanya sama sekali",
+                        "Nilai jelek berarti Allah tidak adil"
+                    ]
+                },
+                explanation: "<b>Masalah:</b> Fikri berprasangka buruk kepada Allah.<br><b>Sikap yang dilanggar:</b> Husnuzan.<br><b>Solusi:</b> Berbaik sangka bahwa nilai ini teguran agar lebih giat belajar.",
+                bonusQuestion: "Apa bahayanya jika kita berprasangka buruk (su'uzan) kepada Allah saat mengalami kegagalan?"
+            },
+            {
+                id: 4,
+                title: "Cita-Cita Tinggi Budi",
+                topic: "Ikhtiar Maksimal",
+                story: "Budi bercita-cita ingin menjadi seorang Penghafal Al-Qur'an (Hafiz) 30 Juz saat dewasa nanti. Setiap hari Budi membayangkan betapa bahagianya memakaikan mahkota untuk orang tuanya di surga. Namun, dalam kehidupan sehari-hari, Budi sangat malas membaca Al-Qur'an. Ketika disuruh mengaji oleh ibunya, Budi selalu menunda-nunda dan lebih memilih menonton TV.",
+                correctTopic: "Ikhtiar Maksimal",
+                answers: {
+                    q1: "Budi punya cita-cita tinggi jadi Hafiz tapi malas mengaji",
+                    q2: "Ikhtiar Maksimal",
+                    q3: "Mulai rajin mengaji setiap hari sedikit demi sedikit dan mengurangi menonton TV",
+                    q4: "Impian besar memerlukan perjuangan dan ikhtiar nyata yang konsisten"
+                },
+                options: {
+                    q1: [
+                        "Budi punya cita-cita tinggi jadi Hafiz tapi malas mengaji",
+                        "Budi tidak diperbolehkan orang tuanya belajar mengaji",
+                        "Al-Qur'an di rumah Budi rusak",
+                        "Budi tidak tahu cara membaca huruf hijaiyah"
+                    ],
+                    q2: ["Doa Khusyuk", "Ikhtiar Maksimal", "Tawakal", "Husnuzan"],
+                    q3: [
+                        "Mulai rajin mengaji setiap hari sedikit demi sedikit dan mengurangi menonton TV",
+                        "Hanya membayangkan cita-cita tanpa mau membaca Al-Qur'an",
+                        "Ganti cita-cita lain yang tidak perlu belajar",
+                        "Menonton TV seharian agar tidak stres"
+                    ],
+                    q4: [
+                        "Impian besar memerlukan perjuangan dan ikhtiar nyata yang konsisten",
+                        "Cita-cita bisa terwujud otomatis tanpa perlu berusaha",
+                        "Menonton TV lebih bermanfaat daripada mengaji",
+                        "Hafal Qur'an hanya butuh niat saja tanpa latihan"
+                    ]
+                },
+                explanation: "<b>Masalah:</b> Budi bermimpi tinggi tanpa ikhtiar.<br><b>Sikap yang kurang:</b> Ikhtiar Maksimal.<br><b>Solusi:</b> Mulai displin mengaji setiap hari.",
+                bonusQuestion: "Apakah cita-cita bisa terwujud hanya dengan membayangkannya saja tanpa ada usaha nyata?"
+            },
+            {
+                id: 5,
+                title: "Sikap Terburu-buru Saat Berdoa",
+                topic: "Doa Khusyuk",
+                story: "Ahmad sedang menghadapi kesulitan memahami pelajaran IPA. Sebelum belajar, Ahmad membaca doa. Namun, ia membaca doa dengan sangat cepat, sambil menoleh ke kanan dan ke kiri, bercanda dengan adiknya, dan tidak benar-benar menghayati arti doa yang diucapkannya. Setelah itu, ia langsung mengeluh bahwa pelajaran IPA sangat sulit.",
+                correctTopic: "Doa Khusyuk",
+                answers: {
+                    q1: "Ahmad berdoa secara terburu-buru dan bercanda tanpa rasa fokus",
+                    q2: "Doa Khusyuk",
+                    q3: "Berdoa dengan tenang, sopan, menghadap kiblat, dan fokus memohon bantuan Allah",
+                    q4: "Doa adalah sarana berkomunikasi dengan Allah, sehingga harus dilakukan dengan tenang & sopan"
+                },
+                options: {
+                    q1: [
+                        "Ahmad berdoa secara terburu-buru dan bercanda tanpa rasa fokus",
+                        "Ahmad tidak memegang buku IPA",
+                        "Ahmad ketiduran saat pelajaran IPA",
+                        "Buku IPA Ahmad tertinggal di sekolah"
+                    ],
+                    q2: ["Doa Khusyuk", "Ikhtiar Maksimal", "Tawakal", "Husnuzan"],
+                    q3: [
+                        "Berdoa dengan tenang, sopan, menghadap kiblat, dan fokus memohon bantuan Allah",
+                        "Meninggalkan doa karena merasa tidak mempan",
+                        "Berdoa sambil berteriak-teriak",
+                        "Menyalahkan pelajaran IPA yang terlalu rumit"
+                    ],
+                    q4: [
+                        "Doa adalah sarana berkomunikasi dengan Allah, sehingga harus dilakukan dengan tenang & sopan",
+                        "Berdoa bercanda tetap dikabulkan 100%",
+                        "Cara berdoa tidak mempengaruhi terkabulnya doa",
+                        "IPA hanya bisa dipahami orang pintar saja"
+                    ]
+                },
+                explanation: "<b>Masalah:</b> Berdoa main-main.<br><b>Sikap yang dilanggar:</b> Doa Khusyuk.<br><b>Solusi:</b> Berdoa dengan penuh kesopanan dan ketenangan hati.",
+                bonusQuestion: "Mengapa kalau kita berbicara dengan guru harus sopan, apalagi ketika kita berdoa memohon kepada Allah?"
+            },
+            {
+                id: 6,
+                title: "Lupa Menyapa dan Prasangka Buruk",
+                topic: "Husnuzan kepada Sesama",
+                story: "Siti adalah anak yang rajin beribadah. Suatu pagi di sekolah, Siti menyapa Lani yang baru datang. Namun, Lani berjalan terus tanpa menjawab sapaan Siti dan wajahnya terlihat cemberut. Siti langsung berpikir: 'Pasti Lani marah padaku dan tidak mau berteman denganku lagi.' Sepanjang hari, Siti merasa kesal pada Lani, padahal Lani sebenarnya sedang menahan sakit gigi yang parah.",
+                correctTopic: "Husnuzan",
+                answers: {
+                    q1: "Siti langsung berprasangka buruk pada Lani tanpa tahu alasan sebenarnya",
+                    q2: "Husnuzan",
+                    q3: "Berprasangka baik bahwa Lani mungkin tidak mendengar, lalu menanyakannya dengan ramah",
+                    q4: "Husnuzan kepada sesama manusia mencegah salah paham dan menjaga tali silaturahmi"
+                },
+                options: {
+                    q1: [
+                        "Siti langsung berprasangka buruk pada Lani tanpa tahu alasan sebenarnya",
+                        "Lani sengaja mendorong Siti hingga terjatuh",
+                        "Siti kehilangan uang saku di kelas",
+                        "Lani pindah sekolah tanpa memberi tahu Siti"
+                    ],
+                    q2: ["Doa Khusyuk", "Ikhtiar Maksimal", "Tawakal", "Husnuzan"],
+                    q3: [
+                        "Berprasangka baik bahwa Lani mungkin tidak mendengar, lalu menanyakannya dengan ramah",
+                        "Memusuhi Lani dan membalas cemberut",
+                        "Menceritakan kejelekan Lani kepada teman lain",
+                        "Berhenti menyapa semua teman di sekolah"
+                    ],
+                    q4: [
+                        "Husnuzan kepada sesama manusia mencegah salah paham dan menjaga tali silaturahmi",
+                        "Berburuk sangka itu hal wajar dan dianjurkan",
+                        "Lani memang pantas dimusuhi sepanjang hari",
+                        "Berteman tidak perlu saling memaafkan"
+                    ]
+                },
+                explanation: "<b>Masalah:</b> Siti buru-buru menuduh Lani.<br><b>Sikap yang dilanggar:</b> Husnuzan.<br><b>Solusi:</b> Berprasangka baik dan mencari tahu keadaan teman.",
+                bonusQuestion: "Apa manfaatnya bagi hati kita jika kita selalu membiasakan diri berprasangka baik (husnuzan) kepada orang lain?"
+            }
+        ];
+
+        // Sound Engine (Web Audio API Synthesizer)
+        let soundMuted = false;
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            if (soundMuted) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                if (type === 'click') {
+                    osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.05);
+                } else if (type === 'success') {
+                    osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+                    osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); // E5
+                    osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2); // G5
+                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.35);
+                } else if (type === 'error') {
+                    osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+                    osc.frequency.setValueAtTime(180, audioCtx.currentTime + 0.1);
+                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.25);
+                }
+            } catch(e) {}
+        }
+
+        function toggleAudioMute() {
+            soundMuted = !soundMuted;
+            document.getElementById('audioBtn').innerHTML = soundMuted ? 
+                '<i class="fa-solid fa-volume-xmark text-slate-400"></i>' : 
+                '<i class="fa-solid fa-volume-high"></i>';
+        }
+
+        // Active Case State
+        let currentCaseIndex = 0;
+        let completedCases = {};
+        let groupScores = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
+
+        // Initialize UI on Load
+        window.onload = function() {
+            renderCaseCards();
+            loadCase(0);
+            renderGroupScoreboard();
+        };
+
+        // Render Case Selection Buttons
+        function renderCaseCards() {
+            const container = document.getElementById('caseCardsContainer');
+            container.innerHTML = casesDatabase.map((c, idx) => {
+                const isCompleted = completedCases[c.id];
+                return `
+                    <button onclick="selectCase(${idx})" class="p-3.5 rounded-2xl border text-left transition flex flex-col justify-between ${idx === currentCaseIndex ? 'bg-emerald-600 text-white border-emerald-700 shadow-md scale-[1.02]' : (isCompleted ? 'bg-emerald-50 text-emerald-900 border-emerald-200' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50')}">
+                        <div>
+                            <div class="flex items-center justify-between text-[11px] font-bold opacity-80 mb-1">
+                                <span>KASUS #${c.id}</span>
+                                ${isCompleted ? '<i class="fa-solid fa-circle-check text-emerald-500"></i>' : ''}
+                            </div>
+                            <div class="font-bold text-xs line-clamp-2">${c.title}</div>
+                        </div>
+                        <span class="text-[10px] inline-block mt-3 px-2 py-0.5 rounded-md font-semibold ${idx === currentCaseIndex ? 'bg-emerald-800 text-emerald-100' : 'bg-slate-100 text-slate-600'}">
+                            ${c.topic}
+                        </span>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function selectCase(index) {
+            playSound('click');
+            currentCaseIndex = index;
+            renderCaseCards();
+            loadCase(index);
+        }
+
+        function loadCase(index) {
+            const c = casesDatabase[index];
+            document.getElementById('caseBadge').innerText = `Kasus #${c.id}`;
+            document.getElementById('caseTitle').innerText = c.title;
+            document.getElementById('caseTopicBadge').innerHTML = `<i class="fa-solid fa-gem text-gold-500 mr-1"></i> ${c.correctTopic}`;
+            document.getElementById('caseStory').innerText = c.story;
+            document.getElementById('caseFeedback').classList.add('hidden');
+            document.getElementById('caseKeyBox').classList.add('hidden');
+
+            // Populate Questions
+            populateOptions('q1Options', c.options.q1, 'q1');
+            populateOptions('q2Options', c.options.q2, 'q2');
+            populateOptions('q3Options', c.options.q3, 'q3');
+            populateOptions('q4Options', c.options.q4, 'q4');
+
+            document.getElementById('caseBonusQuestion').innerText = c.bonusQuestion;
+            document.getElementById('caseKeyContent').innerHTML = `
+                <div>• <b>Masalah Utama:</b> ${c.answers.q1}</div>
+                <div>• <b>Akhlak Terpuji yang Perlu Diterapkan:</b> ${c.answers.q2}</div>
+                <div>• <b>Solusi Tindakan:</b> ${c.answers.q3}</div>
+                <div>• <b>Alasan Islam:</b> ${c.answers.q4}</div>
+            `;
+        }
+
+        function populateOptions(containerId, optionsList, qKey) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = optionsList.map((opt, i) => `
+                <label class="p-3 bg-white border border-emerald-200/60 rounded-xl hover:bg-emerald-100/50 cursor-pointer transition flex items-center gap-2 text-xs sm:text-sm font-medium text-slate-700">
+                    <input type="radio" name="${qKey}" value="${opt.replace(/"/g, '&quot;')}" class="accent-emerald-600 w-4 h-4">
+                    <span>${opt}</span>
+                </label>
+            `).join('');
+        }
+
+        function checkInteractiveAnswers() {
+            const c = casesDatabase[currentCaseIndex];
+            const q1Val = document.querySelector('input[name="q1"]:checked')?.value;
+            const q2Val = document.querySelector('input[name="q2"]:checked')?.value;
+            const q3Val = document.querySelector('input[name="q3"]:checked')?.value;
+            const q4Val = document.querySelector('input[name="q4"]:checked')?.value;
+
+            const feedback = document.getElementById('caseFeedback');
+            feedback.classList.remove('hidden');
+
+            if (!q1Val || !q2Val || !q3Val || !q4Val) {
+                playSound('error');
+                feedback.className = "text-amber-600 font-bold text-xs bg-amber-50 p-3 rounded-xl border border-amber-200";
+                feedback.innerText = "⚠️ Harap jawab keempat pertanyaan kasus di atas terlebih dahulu!";
+                return;
+            }
+
+            let correctCount = 0;
+            if (q1Val === c.answers.q1) correctCount++;
+            if (q2Val === c.answers.q2) correctCount++;
+            if (q3Val === c.answers.q3) correctCount++;
+            if (q4Val === c.answers.q4) correctCount++;
+
+            if (correctCount >= 3) {
+                playSound('success');
+                confetti({ particleCount: 80, spread: 60, origin: { y: 0.7 } });
+                feedback.className = "text-emerald-700 font-bold text-sm bg-emerald-100 p-3 rounded-xl border border-emerald-300";
+                feedback.innerText = `🎉 Hebat! Jawaban Kamu Benar (${correctCount}/4)! Skor Kasus Ini: +100 Poin!`;
+                
+                completedCases[c.id] = true;
+                updateStudentScore();
+                renderCaseCards();
+                document.getElementById('caseKeyBox').classList.remove('hidden');
+            } else {
+                playSound('error');
+                feedback.className = "text-rose-700 font-bold text-xs bg-rose-50 p-3 rounded-xl border border-rose-200";
+                feedback.innerText = `❌ Kamu mendapat ${correctCount}/4 tepat. Coba periksa kembali analisis kasusmu!`;
+            }
+        }
+
+        function updateStudentScore() {
+            const count = Object.keys(completedCases).length;
+            const score = count * 100;
+            document.getElementById('studentTotalScore').innerHTML = `${score} <span class="text-xs font-normal text-emerald-300">/ 600 Poin</span>`;
+
+            let rank = "Detektif Pemula 🔍";
+            if (score >= 500) rank = "Detektif Mutiara Hati 🌟👑";
+            else if (score >= 300) rank = "Detektif Utama 🏆";
+            else if (score >= 100) rank = "Detektif Muda ⭐";
+            
+            document.getElementById('detectiveRankText').innerText = rank;
+        }
+
+        function resetStudentProgress() {
+            completedCases = {};
+            updateStudentScore();
+            renderCaseCards();
+            loadCase(currentCaseIndex);
+        }
+
+        // Teacher Presentation Scoreboard Logic
+        function renderGroupScoreboard() {
+            const grid = document.getElementById('groupScoreboardGrid');
+            grid.innerHTML = [1,2,3,4,5,6].map(gNum => `
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col justify-between shadow-sm">
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="font-black text-slate-800 text-base">Kelompok ${gNum}</span>
+                            <span class="text-xs font-bold text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-full" id="groupScoreBadge-${gNum}">
+                                ${groupScores[gNum]} Poin
+                            </span>
+                        </div>
+                        
+                        <!-- Mini Score Adders -->
+                        <div class="grid grid-cols-2 gap-1.5 text-[11px] mb-3">
+                            <button onclick="addScore(${gNum}, 10)" class="bg-white border hover:bg-emerald-50 text-slate-700 p-1.5 rounded-lg text-left font-medium">+10 Masalah</button>
+                            <button onclick="addScore(${gNum}, 20)" class="bg-white border hover:bg-emerald-50 text-slate-700 p-1.5 rounded-lg text-left font-medium">+20 Akhlak</button>
+                            <button onclick="addScore(${gNum}, 20)" class="bg-white border hover:bg-emerald-50 text-slate-700 p-1.5 rounded-lg text-left font-medium">+20 Solusi</button>
+                            <button onclick="addScore(${gNum}, 20)" class="bg-white border hover:bg-emerald-50 text-slate-700 p-1.5 rounded-lg text-left font-medium">+20 Alasan</button>
+                            <button onclick="addScore(${gNum}, 10)" class="bg-white border hover:bg-emerald-50 text-slate-700 p-1.5 rounded-lg text-left font-medium">+10 Presentasi</button>
+                            <button onclick="addScore(${gNum}, 20)" class="bg-white border hover:bg-gold-50 text-gold-900 p-1.5 rounded-lg text-left font-bold">+20 Bonus Guru</button>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between border-t border-slate-200 pt-3">
+                        <button onclick="setScore(${gNum}, 100)" class="text-xs text-emerald-600 font-bold hover:underline">
+                            <i class="fa-solid fa-check-double"></i> Max 100
+                        </button>
+                        <button onclick="setScore(${gNum}, 0)" class="text-xs text-slate-400 hover:text-rose-500">
+                            Reset
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function addScore(gNum, val) {
+            playSound('click');
+            groupScores[gNum] = Math.min(100, groupScores[gNum] + val);
+            document.getElementById(`groupScoreBadge-${gNum}`).innerText = `${groupScores[gNum]} Poin`;
+        }
+
+        function setScore(gNum, val) {
+            playSound('click');
+            groupScores[gNum] = val;
+            document.getElementById(`groupScoreBadge-${gNum}`).innerText = `${groupScores[gNum]} Poin`;
+        }
+
+        // Presentation Timer Logic
+        let timerSeconds = 15 * 60;
+        let timerInterval = null;
+
+        function updateTimerDisplay() {
+            const m = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
+            const s = (timerSeconds % 60).toString().padStart(2, '0');
+            document.getElementById('timerDisplay').innerText = `${m}:${s}`;
+        }
+
+        function startTimer() {
+            if (timerInterval) return;
+            playSound('click');
+            timerInterval = setInterval(() => {
+                if (timerSeconds > 0) {
+                    timerSeconds--;
+                    updateTimerDisplay();
+                } else {
+                    pauseTimer();
+                    playSound('success');
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            playSound('click');
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+
+        function resetTimer() {
+            playSound('click');
+            pauseTimer();
+            timerSeconds = 15 * 60;
+            updateTimerDisplay();
+        }
+
+        // Tab Navigation Logic
+        function switchTab(tabId) {
+            playSound('click');
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-emerald-600', 'text-white', 'shadow');
+                btn.classList.add('text-slate-600');
+            });
+
+            document.getElementById(tabId).classList.remove('hidden');
+            const activeBtn = document.getElementById(`tabBtn-${tabId}`);
+            activeBtn.classList.add('bg-emerald-600', 'text-white', 'shadow');
+            activeBtn.classList.remove('text-slate-600');
+        }
+
+        // Gemini API Integration Functions
+        async function evaluateAnswerWithAI() {
+            const input = document.getElementById('aiStudentInput').value.trim();
+            const material = document.getElementById('aiMaterialSelect').value;
+            const outputBox = document.getElementById('aiOutputBox');
+            const outputText = document.getElementById('aiOutputText');
+            const evalBtn = document.getElementById('aiEvalBtn');
+
+            if (!input) {
+                alert("Silakan masukkan lembar jawaban diskusi siswa terlebih dahulu.");
+                return;
+            }
+
+            evalBtn.disabled = true;
+            evalBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menganalisis dengan Gemini...';
+            outputBox.classList.remove('hidden');
+            outputText.innerText = "Sedang menghubungkan ke Gemini API untuk mengevaluasi...";
+
+            const systemPrompt = "Kamu adalah seorang Guru Pendidikan Agama Islam (PAI) yang ramah, bijaksana, dan memotivasi. Evaluasi jawaban siswa berdasarkan 4 pilar akhlak terpuji (Doa Khusyuk, Ikhtiar Maksimal, Tawakal, Husnuzan). Berikan pujian, koreksi jika ada yang keliru, dan saran perbaikan singkat dalam bahasa sederhana untuk anak sekolah.";
+            const userQuery = `Materi Kasus: ${material}\nJawaban Siswa: "${input}"\n\nBerikan evaluasi singkat (1-2 paragraf) dan berikan poin apresiasi (skala 0-100).`;
+
+            const apiKey = ""; // Isi dengan API key Gemini jika fitur AI digunakan.
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: userQuery }] }],
+                        systemInstruction: { parts: [{ text: systemPrompt }] }
+                    })
+                });
+
+                const data = await response.json();
+                const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "Maaf, tidak dapat memproses jawaban saat ini.";
+                outputText.innerText = reply;
+                playSound('success');
+            } catch (err) {
+                outputText.innerText = "Gagal memanggil AI. Pastikan koneksi internet lancar dan coba lagi.";
+            } finally {
+                evalBtn.disabled = false;
+                evalBtn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Analisis Jawaban dengan Gemini AI';
+            }
+        }
+
+        async function generateNewCaseWithAI() {
+            const topic = document.getElementById('aiTopicGenerate').value;
+            const outputBox = document.getElementById('aiOutputBox');
+            const outputText = document.getElementById('aiOutputText');
+            const genBtn = document.getElementById('aiGenBtn');
+
+            genBtn.disabled = true;
+            genBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Membuat Kasus Baru...';
+            outputBox.classList.remove('hidden');
+            outputText.innerText = "Sedang membuat skenario kasus baru...";
+
+            const systemPrompt = "Buat 1 skenario cerita pendek kasus PAI untuk anak sekolah tentang akhlak terpuji kepada Allah SWT (Doa Khusyuk, Ikhtiar Maksimal, Tawakal, Husnuzan). Lengkapi dengan 4 pertanyaan panduan dan kunci jawaban guru.";
+            const userQuery = `Topik Kasus: ${topic}`;
+
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: userQuery }] }],
+                        systemInstruction: { parts: [{ text: systemPrompt }] }
+                    })
+                });
+
+                const data = await response.json();
+                const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "Gagal membuat kasus baru.";
+                outputText.innerText = reply;
+                playSound('success');
+            } catch (err) {
+                outputText.innerText = "Gagal menghubungkan ke AI Gemini.";
+            } finally {
+                genBtn.disabled = false;
+                genBtn.innerHTML = '<i class="fa-solid fa-file-pen"></i> Buat Kasus Baru via Gemini AI';
+            }
+        }
+    </script>
+</body>
+</html>
